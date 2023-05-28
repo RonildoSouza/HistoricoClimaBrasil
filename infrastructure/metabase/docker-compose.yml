@@ -1,0 +1,28 @@
+version: "3"
+x-common:
+  &common
+  # restart: always
+  oom_kill_disable: true
+  logging:
+    options:
+      max-file: "5"
+      max-size: "128m"
+  shm_size: 3g
+  mem_limit: 4g
+  cpus: 2
+  networks:
+    - bridge_default
+
+services:
+  metabase:
+    <<: *common
+    image: metabase/metabase:v0.46.4
+    ports:
+      - 3000:3000
+    volumes:
+      - ./plugins/dremio.metabase-driver.jar:/plugins/dremio.metabase-driver.jar:rw
+      - ./metabase.db:/metabase.db:rw
+
+networks:
+  bridge_default:
+    driver: bridge

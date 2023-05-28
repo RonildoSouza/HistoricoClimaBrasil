@@ -1,0 +1,17 @@
+version: "3"
+services:
+  dremio:
+    # restart: always
+    image: dremio/dremio-oss:24.0
+    # volumes:
+    #   # - dremio.conf:/opt/dremio/conf/dremio.conf:ro
+    #   # - dremio-env:/opt/dremio/conf/dremio-env:ro
+    #   - dremio_data:/var/lib/dremio
+    ports:
+      # - "2181:2181"   # ZooKeeper
+      - "9047:9047" # UI (HTTP)
+      - "31010:31010" # ODBC/JDBC clients
+      - "45678:45678" # Inter-node communication
+
+# volumes:
+#   dremio_data:

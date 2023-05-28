@@ -1,0 +1,51 @@
+version: "3"
+x-common:
+  &common
+  # restart: always
+  oom_kill_disable: true
+  logging:
+    options:
+      max-file: "5"
+      max-size: "128m"
+  shm_size: 3g
+  mem_limit: 4g
+  cpus: 2
+  networks:
+    - bridge_default
+
+services:
+  minio:
+    <<: *common
+    image: minio/minio
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    expose:
+      - "9000"
+      - "9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:9000/minio/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    volumes:
+      - "./data:/data:rw"
+
+volumes:
+  data:
+
+networks:
+  bridge_default:
+    driver: bridge
