@@ -161,3 +161,4 @@ cython_debug/
 
 infrastructure/spark/spark/
 infrastructure/spark/tmp/
+infrastructure/minio/data/datalake/raw/clima_municipios_brasileiros/
