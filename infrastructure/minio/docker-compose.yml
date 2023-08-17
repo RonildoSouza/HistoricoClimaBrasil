@@ -1,15 +1,15 @@
 version: "3"
 x-common:
   &common
-  # restart: always
+  restart: always
   oom_kill_disable: true
   logging:
     options:
       max-file: "5"
       max-size: "128m"
-  shm_size: 3g
-  mem_limit: 4g
-  cpus: 2
+  shm_size: 1g
+  mem_limit: 2g
+  cpus: 1
   networks:
     - bridge_default
 
@@ -17,6 +17,7 @@ services:
   minio:
     <<: *common
     image: minio/minio
+    container_name: minio
     command: server --console-address ":9001" /data
     ports:
       - "9000:9000"
@@ -49,3 +50,4 @@ volumes:
 networks:
   bridge_default:
     driver: bridge
+    external: true

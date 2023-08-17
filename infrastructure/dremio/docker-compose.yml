@@ -1,17 +1,29 @@
 version: "3"
 services:
   dremio:
-    # restart: always
-    image: dremio/dremio-oss:24.0
-    # volumes:
-    #   # - dremio.conf:/opt/dremio/conf/dremio.conf:ro
-    #   # - dremio-env:/opt/dremio/conf/dremio-env:ro
-    #   - dremio_data:/var/lib/dremio
+    restart: always
+    oom_kill_disable: true
+    logging:
+      options:
+        max-file: "5"
+        max-size: "128m"
+    shm_size: 8g
+    mem_limit: 10g
+    cpus: 4
+    image: dremio/dremio-oss:24.1
+    container_name: dremio
+    volumes:
+      - ./conf/dremio.conf:/opt/dremio/conf/dremio.conf:rw
+      - ./conf/dremio-env:/opt/dremio/conf/dremio-env:rw
+      - ./data:/opt/dremio/data:rw
     ports:
-      # - "2181:2181"   # ZooKeeper
       - "9047:9047" # UI (HTTP)
       - "31010:31010" # ODBC/JDBC clients
       - "45678:45678" # Inter-node communication
+    networks:
+      - bridge_default
 
-# volumes:
-#   dremio_data:
+networks:
+  bridge_default:
+    driver: bridge
+    external: true

@@ -1,0 +1,2 @@
+# SPARK
+* */4 * * * find "/root/infrastructure/spark/spark/logs" -type f -mmin +360 -delete && find "/root/infrastructure/spark/spark/work" -type f -mmin +360 -delete && find "/root/infrastructure/spark/tmp" -type f -mmin +360 -delete

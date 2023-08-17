@@ -1,0 +1,2 @@
+# DREMIO
+0 5 * * * find "/root/infrastructure/dremio/data/cm" -type f -mtime +1 -delete

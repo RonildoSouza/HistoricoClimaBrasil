@@ -159,6 +159,14 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+infrastructure/dremio/data/
+infrastructure/metabase/metabase.db/
+infrastructure/minio/data/
+infrastructure/minio/data/*
 infrastructure/spark/spark/
 infrastructure/spark/tmp/
-infrastructure/minio/data/datalake/raw/clima_municipios_brasileiros/
+spark-warehouse/
+test.ipynb
+docker-compose.local.yml
+gpt.ipynb
+dags/titanic_example_delta.py
