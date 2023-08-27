@@ -49,8 +49,7 @@ def upload_file(bucket_prefix: str, filename_with_extension: str, filebytes: byt
     import boto3 
 
     BUCKET = 'datalake'
-
-    logging.info("CREATE S3 RESOURCE")
+    
     s3 = boto3.resource(
         's3', 
         aws_access_key_id=s3a_access_key,

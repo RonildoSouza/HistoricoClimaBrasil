@@ -84,7 +84,6 @@ def refined(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str):
 
 @task()
 def trusted(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str):
-    from delta.tables import DeltaTable
     from codes.utils_datalake import spark_session_builder
 
     spark = spark_session_builder(
@@ -112,18 +111,6 @@ def trusted(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str):
     )
 
     logging.info("DATA WRITE")
-    # trusted_old = DeltaTable.forPath(spark, "s3a://datalake/trusted/municipios_brasileiros")
-
-    # (
-    #     trusted_old.alias("old")
-    #     .merge(
-    #         source=refined.alias("new"), 
-    #         condition="old.codigo_ibge = new.codigo_ibge"
-    #     )
-    #     .whenMatchedUpdateAll()
-    #     .whenNotMatchedInsertAll()
-    #     .execute()
-    # )
     (
         refined.write
         .option("overwriteSchema", "true")
