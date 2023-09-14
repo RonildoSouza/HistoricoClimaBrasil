@@ -7,9 +7,9 @@ x-common:
     options:
       max-file: "5"
       max-size: "128m"
-  shm_size: 1g
-  mem_limit: 2g
-  cpus: 1
+  shm_size: 3g
+  mem_limit: 4g
+  cpus: 2
   networks:
     - bridge_default
   volumes:
@@ -41,8 +41,8 @@ services:
       - spark-master
     environment:
       - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=4G
+      - SPARK_WORKER_CORES=2
     ports:
       - '8081:8081'
     expose:

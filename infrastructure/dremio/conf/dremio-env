@@ -44,7 +44,7 @@
 # If one is set, the other is calculated as difference
 # of max memory and the one that is set.
 #
-#DREMIO_MAX_MEMORY_SIZE_MB=
+DREMIO_MAX_MEMORY_SIZE_MB=8192
 
 #
 # Max heap memory size (in MB) for the Dremio process

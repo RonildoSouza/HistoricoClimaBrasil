@@ -99,7 +99,7 @@ def refined(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, referen
             "dataset": "temporalidade",
             "query": """
                 WITH _time AS (
-                    SELECT DISTINCT
+                    SELECT
                         codigo_ibge,
                         posexplode(payload.hourly.time) AS (idx, time),
                         payload.elevation,
@@ -110,7 +110,7 @@ def refined(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, referen
                         payload.utc_offset_seconds
                     FROM clima_municipios
                 )
-                SELECT DISTINCT
+                SELECT
                     _time.idx,
                     _time.codigo_ibge,
                     CAST(_time.time AS TIMESTAMP) AS time,
@@ -127,13 +127,13 @@ def refined(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, referen
             "dataset": "humidade",
             "query": """
                 WITH _relativehumidity AS (
-                    SELECT DISTINCT
+                    SELECT
                         codigo_ibge,
                         posexplode(payload.hourly.relativehumidity_2m) AS (idx, relativehumidity_2m), 
                         payload.hourly_units.relativehumidity_2m AS unit_relativehumidity_2m
                     FROM clima_municipios
                 )
-                SELECT DISTINCT
+                SELECT
                     _relativehumidity.idx,
                     _relativehumidity.codigo_ibge,
                     _relativehumidity.relativehumidity_2m,
@@ -145,13 +145,13 @@ def refined(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, referen
             "dataset": "temperatura",
             "query": """
                 WITH _temperature AS (
-                    SELECT DISTINCT
+                    SELECT
                         codigo_ibge,
                         posexplode(payload.hourly.temperature_2m) AS (idx, temperature_2m),
                         payload.hourly_units.temperature_2m AS unit_temperature_2m
                     FROM clima_municipios
                 )
-                SELECT DISTINCT
+                SELECT
                     _temperature.idx,
                     _temperature.codigo_ibge,
                     _temperature.temperature_2m,
@@ -163,13 +163,13 @@ def refined(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, referen
             "dataset": "velocidade_do_vento",
             "query": """
                 WITH _windspeed AS (
-                    SELECT DISTINCT
+                    SELECT
                         codigo_ibge,
                         posexplode(payload.hourly.windspeed_10m) AS (idx, windspeed_10m),
                         payload.hourly_units.windspeed_10m AS unit_windspeed_10m
                     FROM clima_municipios
                 )
-                SELECT DISTINCT
+                SELECT
                     _windspeed.idx,
                     _windspeed.codigo_ibge,
                     _windspeed.windspeed_10m,
@@ -219,65 +219,36 @@ def trusted(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, referen
     spark.read.parquet(f"s3a://datalake/refined/clima_municipios_brasileiros/velocidade_do_vento/{reference_date.strftime('%Y')}") \
         .createOrReplaceTempView("velocidade_do_vento")
 
-    datasets_and_queries = [
-        {
-            "dataset": "humidade",
-            "query": """
-                SELECT 
-                    t.codigo_ibge,
-                    t.`time` AS data_hora,
-                    hm.relativehumidity_2m AS humidade_relativa,
-                    -- hm.unit_relativehumidity_2m AS unidade_humidade_relativa,
-                    current_timestamp() AS gerado_em
-                FROM temporalidade t
-                INNER JOIN humidade hm ON hm.idx = t.idx
-                ORDER BY t.codigo_ibge
-            """
-        },
-        {
-            "dataset": "temperatura",
-            "query": """
-                SELECT 
-                    t.codigo_ibge,
-                    t.`time` AS data_hora,
-                    tp.temperature_2m AS temperatura,
-                    -- tp.unit_temperature_2m AS unidade_temperatura,
-                    current_timestamp() AS gerado_em
-                FROM temporalidade t
-                INNER JOIN temperatura tp ON tp.idx = t.idx
-                ORDER BY t.codigo_ibge
-            """
-        },
-        {
-            "dataset": "velocidade_do_vento",
-            "query": """
-                SELECT 
-                    t.codigo_ibge,
-                    t.`time` AS data_hora,
-                    vv.windspeed_10m AS velocidade_do_vento,
-                    -- vv.unit_windspeed_10m AS unidade_velocidade_do_vento,
-                    current_timestamp() AS gerado_em
-                FROM temporalidade t
-                INNER JOIN velocidade_do_vento vv ON vv.idx = t.idx
-                ORDER BY t.codigo_ibge
-            """
-        },
-    ]
-
-    for dsqs in datasets_and_queries:
-        dataset = dsqs["dataset"]
-        query = dsqs["query"]        
-
-        logging.info(f"DATA TRANSFORM - {dataset}")
-        trusted = spark.sql(query)
-        
-        logging.info("DATA WRITE")
-        (
-            trusted.write
-            .format("parquet")
-            .mode("overwrite")
-            .save(f"s3a://datalake/trusted/clima_municipios_brasileiros/{dataset}/{reference_date.strftime('%Y')}")
-        )
+    logging.info(f"DATA TRANSFORM")
+    trusted = spark.sql("""
+        SELECT 
+            t.codigo_ibge,
+            CAST(t.`time` AS DATE) AS data,
+            AVG(hm.relativehumidity_2m) AS humidade_relativa_media,
+            MIN(hm.relativehumidity_2m) AS humidade_relativa_minima,
+            MAX(hm.relativehumidity_2m) AS humidade_relativa_maxima,
+            AVG(tp.temperature_2m) AS temperatura_media,
+            MIN(tp.temperature_2m) AS temperatura_minima,
+            MAX(tp.temperature_2m) AS temperatura_maxima,
+            AVG(vv.windspeed_10m) AS velocidade_do_vento_media,
+            MIN(vv.windspeed_10m) AS velocidade_do_vento_minima,
+            MAX(vv.windspeed_10m) AS velocidade_do_vento_maxima,
+            MAX(current_timestamp()) AS gerado_em
+        FROM temporalidade t
+        INNER JOIN humidade hm ON hm.idx = t.idx AND hm.codigo_ibge = t.codigo_ibge
+        INNER JOIN temperatura tp ON tp.idx = t.idx AND tp.codigo_ibge = t.codigo_ibge
+        INNER JOIN velocidade_do_vento vv ON vv.idx = t.idx AND vv.codigo_ibge = t.codigo_ibge
+        GROUP BY 1, 2
+        ORDER BY t.codigo_ibge
+    """)
+    
+    logging.info("DATA WRITE")
+    (
+        trusted.write
+        .format("parquet")
+        .mode("overwrite")
+        .save(f"s3a://datalake/trusted/clima_municipios_brasileiros/{reference_date.strftime('%Y')}")
+    )
 
     if spark:
         spark.stop()

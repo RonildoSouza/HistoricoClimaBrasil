@@ -1,6 +1,6 @@
 import logging
 
-def spark_session_builder(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, app_name: str):
+def spark_session_builder(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str, app_name: str, log_level: str = "OFF"):
     from pyspark.sql import SparkSession
 
     logging.info("CREATE SPARK SESSION")
@@ -14,8 +14,8 @@ def spark_session_builder(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 
         # LIMITA USO DE CORE E MEMORIA POR EXECUTOR
-        .config("spark.cores.max", "1")
-        .config("spark.executor.memory", "2g")  
+        .config("spark.cores.max", "2")
+        .config("spark.executor.memory", "4g")  
 
         # CONFIGURAÇÃO PARA COMUNICAR COM PROTOCOLO S3
         .config("spark.hadoop.fs.s3a.access.key", s3a_access_key)
@@ -26,6 +26,16 @@ def spark_session_builder(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
 
         .config("spark.network.timeout", "480s")
+        .config("spark.scheduler.barrier.maxConcurrentTasksCheck.maxFailures", "5")
+        .config("spark.rdd.compress", "true")
+        .config("spark.shuffle.compress", "true")
+        .config("spark.shuffle.spill.compress", "true")
+        .config("spark.executor.extraJavaOptions", "-XX:+UseG1GC -XX:+G1SummarizeConcMark")
+        .config("spark.driver.extraJavaOptions", "-XX:+UseG1GC -XX:+G1SummarizeConcMark")
+        .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .config("spark.kryoserializer.buffer.max", "512m")
+
+        .config("spark.sql.autoBroadcastJoinThreshold", -1)
 
         # CRIA SESSÃO DO SPARK
         .master(f"spark://spark-master:7077")
@@ -40,7 +50,7 @@ def spark_session_builder(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint
     # for key, value in [(k.replace("spark.hadoop.", ""), v) for k, v in spark.sparkContext.getConf().getAll() if k.find("hadoop") != -1]:
     #     hadoop_config.set(key, value)
 
-    spark.sparkContext.setLogLevel("OFF")
+    spark.sparkContext.setLogLevel(log_level)
 
     return spark
 
