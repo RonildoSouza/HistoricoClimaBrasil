@@ -21,6 +21,7 @@ def raw(s3a_access_key: str, s3a_secret_key: str, s3a_endpoint: str):
             s3a_secret_key=s3a_secret_key,
             s3a_endpoint=s3a_endpoint
         )
+
     return "SUCESSO"
 
 @task()

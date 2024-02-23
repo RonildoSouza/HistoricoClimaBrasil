@@ -16,7 +16,7 @@ x-common:
 services:
   metabase:
     <<: *common
-    image: metabase/metabase:v0.46.6.2
+    image: metabase/metabase:v0.48.3
     container_name: metabase
     ports:
       - 3000:3000
