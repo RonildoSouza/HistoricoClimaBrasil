@@ -1,6 +1,6 @@
-# Trabalho de Conclusão do Curso de Pós Graduação em Engenharia de Dados
+# Pós-graduação Lato Sensu em Engenharia de Dados
 
-O trabalho visou a implementação de uma infraestrutura de dados de baixo custo para empresas de pequeno e médio porte que não utilizam seus dados para tomadas de decisões por motivo de custo e/ou receio da real entrega de valor na análise dos dados.
+O trabalho de conclusão de curso visou a implementação de uma infraestrutura de dados de baixo custo para empresas de pequeno e médio porte que não utilizam seus dados para tomadas de decisões por motivo de custo e/ou receio da real entrega de valor na análise dos dados.
 
 Pipeline de dados com as ferramentas utilizadas para montar o ambiente para realizar a extração, transformação e carregamento dos dados de forma a possibilitar o uso das informações obtidas nas ferramentas analíticas.
 
